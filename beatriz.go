@@ -11,29 +11,26 @@ import (
 
 func principal(contexto *cli.Context) error {
 	origen := contexto.String("origen")
+
 	envio := contexto.Bool("envio")
 	destino := contexto.String("destino")
-	destinoToken := contexto.String("destinoToken")
-	destinoOrganizacion := contexto.String("destinoOrganizacion")
-	destinoBucket := contexto.String("destinoBucket")
+	destinoToken := contexto.String("destino-token")
+	destinoOrganizacion := contexto.String("destino-organizacion")
+	destinoBucket := contexto.String("destino-bucket")
 
-	kyocera := peticiones.ImpresoraOids{
-		Usado: ".1.3.6.1.2.1.43.11.1.1.9.1.1",
-		Total: ".1.3.6.1.2.1.43.11.1.1.8.1.1",
-	}
-
-	porcentaje, err := peticiones.ObtenerUsoToner(origen, kyocera)
+	toners, err := peticiones.ObtenerUsoToners(origen)
 	if err != nil {
 		return err
 	}
 
 	if envio {
-		datos := peticiones.Datos{
-			Hostname:      origen,
-			UsoPorcentaje: porcentaje,
-		}
 		backend := peticiones.NewBackend(destino, destinoToken, destinoOrganizacion, destinoBucket)
-		return backend.Enviar(datos)
+		return backend.Enviar(toners)
+	} else {
+		fmt.Printf("\nImpresora en %s\n", origen)
+		for _, t := range toners {
+			fmt.Println("\t", t.String())
+		}
 	}
 
 	return nil
